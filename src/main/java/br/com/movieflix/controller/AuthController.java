@@ -1,12 +1,15 @@
 package br.com.movieflix.controller;
 
+import br.com.movieflix.config.TokenService;
 import br.com.movieflix.controller.request.LoginRequest;
 import br.com.movieflix.controller.request.UserRequest;
+import br.com.movieflix.controller.response.LoginResponse;
 import br.com.movieflix.controller.response.UserResponse;
 import br.com.movieflix.entity.User;
 import br.com.movieflix.mapper.UserMapper;
 import br.com.movieflix.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +27,7 @@ public class AuthController {
 
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
+    private final TokenService tokenService;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@RequestBody UserRequest UserRequest){
@@ -32,11 +36,15 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest  LoginRequest){
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest  LoginRequest){
         UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(LoginRequest.email(), LoginRequest.password());
         Authentication authenticate =  authenticationManager.authenticate(userAndPass);
 
         User user = (User) authenticate.getPrincipal();
+        String token = tokenService.generateToken(user);
+
+        return ResponseEntity.ok(new LoginResponse(token));
+
     }
 
 }
